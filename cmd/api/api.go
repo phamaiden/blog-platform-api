@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/phamaiden/blog-platform-api/internal/handlers"
 )
 
 type application struct {
@@ -12,16 +13,14 @@ type application struct {
 }
 
 type config struct {
-	addr string
-	_    string
+	addr  string
+	dbUrl string
 }
 
-func (app *application) mount() http.Handler {
+func (app *application) mount(bh *handlers.BlogHandler) http.Handler {
 	mux := mux.NewRouter()
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
-	})
+	mux.HandleFunc("/", bh.GetBlog)
 
 	return mux
 }

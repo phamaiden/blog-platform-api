@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/lpernett/godotenv"
+	"github.com/phamaiden/blog-platform-api/internal/db"
 	"github.com/phamaiden/blog-platform-api/internal/handlers"
 	"github.com/phamaiden/blog-platform-api/internal/services"
 )
@@ -15,20 +16,25 @@ func main() {
 		log.Fatalf("error loading env: %s", err)
 	}
 
-	cfg := &config{
-		addr: os.Getenv("ADDR"),
-		//dbUrl: os.Getenv("DB_URL"),
+	cfg := config{
+		addr:  os.Getenv("ADDR"),
+		dbUrl: os.Getenv("DB_URL"),
 	}
 
 	app := &application{
-		config: *cfg,
+		config: cfg,
 	}
 
-	services := services.
+	db, err := db.Init(cfg.dbUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	handler := handlers.NewBlogHandler()
+	services := services.NewBlogService(db)
 
-	r := app.mount()
+	handler := handlers.NewBlogHandler(services)
+
+	r := app.mount(handler)
 
 	log.Fatal(app.run(r))
 }
