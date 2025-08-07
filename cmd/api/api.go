@@ -20,7 +20,13 @@ type config struct {
 func (app *application) mount(bh *handlers.BlogHandler) http.Handler {
 	mux := mux.NewRouter()
 
-	mux.HandleFunc("/", bh.GetBlog)
+	mux.Use(jsonContentTypeMiddleware)
+
+	mux.HandleFunc("/", bh.GetAllBlogs)
+	mux.HandleFunc("/posts", bh.PostBlog).Methods("POST")
+	mux.HandleFunc("/posts/{id}", bh.PutBlog).Methods("PUT")
+	mux.HandleFunc("/posts/{id}", bh.DeleteBlog).Methods("DELETE")
+	mux.HandleFunc("/posts/{id}", bh.GetBlogById).Methods("GET")
 
 	return mux
 }
