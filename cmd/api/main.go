@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -25,12 +26,15 @@ func main() {
 		config: cfg,
 	}
 
-	db, err := db.Init(cfg.dbUrl)
+	conn, err := db.Init(cfg.dbUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer conn.Close(context.Background())
 
-	services := services.NewBlogService(db)
+	queries := db.New(conn)
+
+	services := services.NewBlogService(queries)
 
 	handler := handlers.NewBlogHandler(services)
 
