@@ -85,7 +85,7 @@ func (bh *BlogHandler) PutBlog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": err.Error(),
+			"error": "post not found",
 		})
 		return
 	}
@@ -117,9 +117,9 @@ func (bh *BlogHandler) GetBlogById(w http.ResponseWriter, r *http.Request) {
 
 	post, err := bh.blogService.ReadPostById(r.Context(), postId)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{
-			"error": err.Error(),
+			"error": "post not found",
 		})
 		return
 	}
@@ -132,4 +132,34 @@ func (bh *BlogHandler) GetBlogByFilter(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (bh *BlogHandler) DeleteBlog(w http.ResponseWriter, r *http.Request) {}
+func (bh *BlogHandler) DeleteBlog(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postId, ok := vars["id"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "missing post id parameter",
+		})
+		return
+	}
+
+	_, err := bh.blogService.ReadPostById(r.Context(), postId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	err = bh.blogService.DeleteBlog(r.Context(), postId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

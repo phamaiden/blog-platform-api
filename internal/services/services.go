@@ -14,7 +14,7 @@ type BlogService interface {
 	ReadPostById(ctx context.Context, id string) (*db.Post, error)
 	ReadPostByFilter(ctx context.Context) error
 	UpdatePost(ctx context.Context, id string, post *models.UpdatePost) (*db.Post, error)
-	DeleteBlog(ctx context.Context) error
+	DeleteBlog(ctx context.Context, id string) error
 }
 
 type blogService struct {
@@ -76,6 +76,10 @@ func (bs *blogService) UpdatePost(ctx context.Context, id string, post *models.U
 	return &resp, err
 }
 
-func (bs *blogService) DeleteBlog(ctx context.Context) error {
-	return nil
+func (bs *blogService) DeleteBlog(ctx context.Context, id string) error {
+	postId, err := strconv.Atoi(id)
+	if err != nil {
+		return err
+	}
+	return bs.dbQueries.DeletePost(ctx, int32(postId))
 }
