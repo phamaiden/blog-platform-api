@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	_ "github.com/phamaiden/blog-platform-api/internal/db"
 	"github.com/phamaiden/blog-platform-api/internal/models"
 	"github.com/phamaiden/blog-platform-api/internal/services"
@@ -58,10 +59,76 @@ func (bh *BlogHandler) PostBlog(w http.ResponseWriter, r *http.Request) {
 }
 
 func (bh *BlogHandler) PutBlog(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postId, ok := vars["id"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "missing post id parameter",
+		})
+		return
+	}
 
+	// read in updated post from http request
+	var request models.UpdatePost
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// check if post exists
+	_, err = bh.blogService.ReadPostById(r.Context(), postId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// update post
+	updated, err := bh.blogService.UpdatePost(r.Context(), postId, &request)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updated)
 }
 
 func (bh *BlogHandler) GetBlogById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	postId, ok := vars["id"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": "missing post id parameter",
+		})
+		return
+	}
+
+	post, err := bh.blogService.ReadPostById(r.Context(), postId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(post)
+}
+
+func (bh *BlogHandler) GetBlogByFilter(w http.ResponseWriter, r *http.Request) {
 
 }
 
