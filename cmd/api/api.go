@@ -24,6 +24,7 @@ func (app *application) mount(bh *handlers.BlogHandler) http.Handler {
 
 	mux.HandleFunc("/", bh.GetAllBlogs)
 	mux.HandleFunc("/posts", bh.PostBlog).Methods("POST")
+	mux.HandleFunc("/posts", bh.GetBlogByFilter).Methods("GET")
 	mux.HandleFunc("/posts/{id}", bh.PutBlog).Methods("PUT")
 	mux.HandleFunc("/posts/{id}", bh.DeleteBlog).Methods("DELETE")
 	mux.HandleFunc("/posts/{id}", bh.GetBlogById).Methods("GET")

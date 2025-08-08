@@ -129,7 +129,18 @@ func (bh *BlogHandler) GetBlogById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (bh *BlogHandler) GetBlogByFilter(w http.ResponseWriter, r *http.Request) {
+	term := r.URL.Query().Get("term")
+	posts, err := bh.blogService.ReadPostByFilter(r.Context(), term)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{
+			"error": err.Error(),
+		})
+		return
+	}
 
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(posts)
 }
 
 func (bh *BlogHandler) DeleteBlog(w http.ResponseWriter, r *http.Request) {

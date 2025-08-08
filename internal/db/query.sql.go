@@ -146,3 +146,42 @@ func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, e
 	)
 	return i, err
 }
+
+const getPostsByTerm = `-- name: GetPostsByTerm :many
+SELECT id, title, content, category, tags, created_at, updated_at
+FROM posts
+WHERE
+      CAST(id AS TEXT) ILIKE '%' || $1 || '%'
+   OR title ILIKE '%' || $1 || '%'
+   OR content ILIKE '%' || $1 || '%'
+   OR category ILIKE '%' || $1 || '%'
+   OR array_to_string(tags, ',') ILIKE '%' || $1 || '%'
+`
+
+func (q *Queries) GetPostsByTerm(ctx context.Context, term string) ([]Post, error) {
+	rows, err := q.db.Query(ctx, getPostsByTerm, term)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Post
+	for rows.Next() {
+		var i Post
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Content,
+			&i.Category,
+			&i.Tags,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

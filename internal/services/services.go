@@ -12,7 +12,7 @@ type BlogService interface {
 	CreatePost(ctx context.Context, post *models.CreatePost) (*db.Post, error)
 	ReadAllPosts(ctx context.Context) (*[]db.Post, error)
 	ReadPostById(ctx context.Context, id string) (*db.Post, error)
-	ReadPostByFilter(ctx context.Context) error
+	ReadPostByFilter(ctx context.Context, term string) (*[]db.Post, error)
 	UpdatePost(ctx context.Context, id string, post *models.UpdatePost) (*db.Post, error)
 	DeleteBlog(ctx context.Context, id string) error
 }
@@ -53,8 +53,9 @@ func (bs *blogService) ReadPostById(ctx context.Context, id string) (*db.Post, e
 	return &resp, err
 }
 
-func (bs *blogService) ReadPostByFilter(ctx context.Context) error {
-	return nil
+func (bs *blogService) ReadPostByFilter(ctx context.Context, term string) (*[]db.Post, error) {
+	resp, err := bs.dbQueries.GetPostsByTerm(ctx, term)
+	return &resp, err
 }
 
 func (bs *blogService) UpdatePost(ctx context.Context, id string, post *models.UpdatePost) (*db.Post, error) {
