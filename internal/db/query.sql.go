@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createPost = `-- name: CreatePost :one
@@ -113,17 +114,19 @@ UPDATE posts
   set title = $2,
   content = $3,
   category = $4,
-  tags = $5
+  tags = $5,
+  updated_at = NOW()
 WHERE id = $1
 RETURNING id, title, content, category, tags, created_at, updated_at
 `
 
 type UpdatePostParams struct {
-	ID       int32
-	Title    string
-	Content  string
-	Category string
-	Tags     []string
+	ID        int32
+	Title     string
+	Content   string
+	Category  string
+	Tags      []string
+	UpdatedAt time.Time
 }
 
 func (q *Queries) UpdatePost(ctx context.Context, arg UpdatePostParams) (Post, error) {

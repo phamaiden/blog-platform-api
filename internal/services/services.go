@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/phamaiden/blog-platform-api/internal/db"
 	"github.com/phamaiden/blog-platform-api/internal/models"
@@ -64,11 +65,12 @@ func (bs *blogService) UpdatePost(ctx context.Context, id string, post *models.U
 		return &db.Post{}, err
 	}
 	updatedPost := db.UpdatePostParams{
-		ID:       int32(postId),
-		Title:    post.Title,
-		Content:  post.Content,
-		Category: post.Category,
-		Tags:     post.Tags,
+		ID:        int32(postId),
+		Title:     post.Title,
+		Content:   post.Content,
+		Category:  post.Category,
+		Tags:      post.Tags,
+		UpdatedAt: time.Now(),
 	}
 	resp, err := bs.dbQueries.UpdatePost(ctx, updatedPost)
 	if err != nil {
